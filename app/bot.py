@@ -25,6 +25,7 @@ LANGUAGES = ["Azərbaycan", "İngilis", "Rus"]
  MY_SLIDES, SELECT_SLIDE_ACTION, EDIT_FIELD, EDIT_VALUE) = range(18)
 
 
+
 DB_FILE = "db.json"
 
 # Məşhur dərs kateqoriyaları
