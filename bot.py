@@ -1205,24 +1205,37 @@ async def approve_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         user_id = int(query.data.split('_')[2])
         
+        # Load payments
         with open('payments.json', 'r', encoding='utf-8') as f:
             payments = json.load(f)
         
+        # Find payment
         payment = next((p for p in payments if p['user_id'] == user_id), None)
         if not payment:
             raise ValueError(f"Payment not found for user ID: {user_id}")
 
+        # Load slides
         slides = load_slides()
+        
+        # Find slide
         slide = next((s for s in slides if s['file'] == payment['slide_file']), None)
         if not slide:
-            raise ValueError(f"Slide not found for payment: {payment['slide_name']}")
+            raise ValueError(f"Slide not found: {payment['slide_name']}")
 
-        # Increment sales count
-        slide['sales'] = slide.get('sales', 0) + 1
-        save_slide(slides)
+        # Update sales count
+        if 'sales' in slide:
+            slide['sales'] += 1
+        else:
+            slide['sales'] = 1
 
+        # Save updated slides
+        with open(DB_FILE, 'w', encoding='utf-8') as f:
+            json.dump(slides, f, indent=2, ensure_ascii=False)
+
+        # Calculate seller amount (85% of price)
         seller_amount = float(slide['price']) * 0.85
 
+        # Send payment details to admin
         await query.message.reply_text(
             f"💰 *Ödəniş edilməlidir:*\n\n"
             f"👤 İstifadəçi ID: `{slide['owner']}`\n"
@@ -1232,31 +1245,33 @@ async def approve_payment(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode="Markdown"
         )
 
-        slide_file = payment['slide_file']
-        if not os.path.exists(slide_file):
-            raise ValueError(f"Slide file not found: {slide_file}")
+        # Send slide to buyer
+        if os.path.exists(slide['file']):
+            file_extension = os.path.splitext(slide['file'])[1].lower()
+            with open(slide['file'], 'rb') as f:
+                await context.bot.send_document(
+                    chat_id=user_id,
+                    document=f,
+                    filename=f"{slide['name']}{file_extension}",
+                    caption=f"Təqdimat: {slide['name']}"
+                )
 
-        file_extension = os.path.splitext(slide_file)[1].lower() or '.pdf'
-
-        with open(slide_file, 'rb') as f:
-            await context.bot.send_document(
+            # Notify buyer
+            await context.bot.send_message(
                 chat_id=user_id,
-                document=f,
-                filename=f"{payment['slide_name']}{file_extension}",
-                caption=f"Təqdimat: {payment['slide_name']}"
+                text="✅ Ödənişiniz təsdiqləndi! Slayd faylı yuxarıda göndərildi."
             )
 
-        await context.bot.send_message(
-            chat_id=user_id,
-            text="✅ Ödənişiniz təsdiqləndi! Slayd faylı yuxarıda göndərildi."
-        )
+            # Remove payment record
+            payments = [p for p in payments if p['user_id'] != user_id]
+            with open('payments.json', 'w', encoding='utf-8') as f:
+                json.dump(payments, f, indent=2, ensure_ascii=False)
 
-        payments = [p for p in payments if p['user_id'] != user_id]
-        with open('payments.json', 'w', encoding='utf-8') as f:
-            json.dump(payments, f, indent=2, ensure_ascii=False)
+            # Confirm to admin
+            await query.message.reply_text(f"✅ İstifadəçiyə (ID: {user_id}) slayd göndərildi.")
+        else:
+            raise FileNotFoundError(f"Slide file not found: {slide['file']}")
 
-        await query.message.reply_text(f"✅ İstifadəçiyə (ID: {user_id}) slayd göndərildi.")
-        
     except Exception as e:
         logger.error(f"Error approving payment: {e}")
         await query.message.reply_text(f"Xəta: {str(e)}")

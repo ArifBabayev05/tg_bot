@@ -1,0 +1,5 @@
+python-telegram-bot==20.7
+Pillow==8.4.0
+python-dotenv==1.0.0
+httpx==0.24.1
+gunicorn==21.2.0
