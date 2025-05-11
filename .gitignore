@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+.DS_Store
+downloads/
+images/
+payments/
+db.json
+payments.json
+pending_uploads.json
