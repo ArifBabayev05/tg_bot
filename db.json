@@ -1,0 +1,20 @@
+[
+  {
+    "id": "4219cbd2-ccd9-48ee-b58b-cca59bd01668",
+    "name": "asd",
+    "category": "IT",
+    "language": "Azərbaycan",
+    "pages": 1,
+    "price": 1.0,
+    "card": "1",
+    "file": "downloads\\fcc4c7c7-1261-4e25-9474-f71f4625e3f9_ArifBabayev-CV.pdf (1).pdf",
+    "file_type": "pdf",
+    "images": [
+      "images/cf46cbb7-6974-4bdf-aee9-285c23b151de.jpg"
+    ],
+    "owner": 931284952,
+    "owner_name": "Arif Babayev",
+    "timestamp": "2025-05-11 15:42:00+00:00",
+    "file_extension": ".pdf"
+  }
+]
