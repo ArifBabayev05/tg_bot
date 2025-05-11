@@ -5,6 +5,6 @@ __pycache__/
 downloads/
 images/
 payments/
-.db.json
-.payments.json
-.pending_uploads.json
+/db.json
+/payments.json
+/pending_uploads.json
