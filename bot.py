@@ -397,7 +397,12 @@ async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         # Maksimum ölçüsünü təyin et (məsələn, 1280x1280)
         max_size = (1280, 1280)
-        image.thumbnail(max_size, Image.Resampling.LANCZOS)
+        
+        # Try new Pillow version method first, fall back to old version if needed
+        try:
+            image.thumbnail(max_size, Image.Resampling.LANCZOS)
+        except AttributeError:
+            image.thumbnail(max_size, Image.LANCZOS)
         
         # Şəklin ölçüsünü kiçilt (keyfiyyəti azaldaraq)
         output = io.BytesIO()
@@ -424,7 +429,6 @@ async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with open(image_path, 'wb') as f:
             f.write(output.getvalue())
         
-        # Faylın düzgün saxlanıb saxlanmadığını yoxla
         if not os.path.exists(image_path):
             raise Exception("Failed to save image file")
         
@@ -445,10 +449,10 @@ async def handle_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
         return UPLOAD_IMAGE
-    
+        
     except Exception as e:
         logger.error(f"Error processing image for user {user.id}: {str(e)}")
-        await update.message.reply_text(f"Şəkil yüklənərkən xəta baş verdi: {str(e)}. Zəhmət olmasa yenidən cəhd edin.")
+        await update.message.reply_text("Şəkil yüklənərkən xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.")
         return UPLOAD_IMAGE
     
 async def handle_image_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
